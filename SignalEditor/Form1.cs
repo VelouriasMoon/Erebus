@@ -45,6 +45,28 @@ namespace SignalEditor
                 TreeNode tx = x as TreeNode;
                 TreeNode ty = y as TreeNode;
 
+                if (tx.Parent.Text == "Type: 67" 
+                    || tx.Parent.Text == "Type: 69" 
+                    || tx.Parent.Text == "Type: 72" 
+                    || tx.Parent.Text == "Type: 73" 
+                    || tx.Parent.Text == "Type: 46" 
+                    || tx.Parent.Text == "Type: 51"
+                    || ty.Parent == null)
+                {
+                    return 0;
+                }
+                if (ty.Parent.Text == "Type: 67"
+                    || ty.Parent.Text == "Type: 69"
+                    || ty.Parent.Text == "Type: 72"
+                    || ty.Parent.Text == "Type: 73"
+                    || ty.Parent.Text == "Type: 46"
+                    || ty.Parent.Text == "Type: 51"
+                    || ty.Parent == null)
+                {
+                    return 0;
+                }
+
+
                 string s1 = tx.Text;
                 while (s1.Length > 0 && Char.IsDigit(s1.Last())) s1 = s1.TrimEnd(s1.Last());
                 s1 = s1 + tx.Text.Substring(s1.Length).PadLeft(12, '0');
@@ -69,7 +91,14 @@ namespace SignalEditor
             return bytes;
         }
 
+        private byte[] ReverseBytes(byte[] data)
         {
+            byte[] bytes = new byte[data.Length];
+            bytes[0] = data[3];
+            bytes[1] = data[2];
+            bytes[2] = data[1];
+            bytes[3] = data[0];
+            return bytes;
         }
 
         #endregion
@@ -502,6 +531,22 @@ namespace SignalEditor
             richTextBox1.Clear();
         }
 
+        private void B_ToHex_Click(object sender, EventArgs e)
+        {
+            richTextBox1.Clear();
+            byte[] signaldata = TreeViewToSignals();
+            if (signaldata == null)
+                return;
+
+            for (uint i = 0; i < signaldata.Length / 4; i++)
+            {
+                byte[] bytes = FEIO.ReadBytesFromArray(signaldata, 4, i * 4);
+                bytes = ReverseBytes(bytes);
+                string data = BitConverter.ToString(bytes).Replace("-","");
+                richTextBox1.AppendText(data + Environment.NewLine);
+            }
+        }
+
         #endregion
 
         #region Number Converter
@@ -574,5 +619,7 @@ namespace SignalEditor
             }
         }
         #endregion
+
+        
     }
 }

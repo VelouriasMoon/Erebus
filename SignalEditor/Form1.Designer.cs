@@ -50,6 +50,7 @@ namespace SignalEditor
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.button3 = new System.Windows.Forms.Button();
             this.toolStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -164,17 +165,17 @@ namespace SignalEditor
             // 
             this.B_Convert.Location = new System.Drawing.Point(354, 32);
             this.B_Convert.Name = "B_Convert";
-            this.B_Convert.Size = new System.Drawing.Size(123, 23);
+            this.B_Convert.Size = new System.Drawing.Size(65, 23);
             this.B_Convert.TabIndex = 10;
-            this.B_Convert.Text = "Convert to User Data";
+            this.B_Convert.Text = "Export Int";
             this.B_Convert.UseVisualStyleBackColor = true;
             this.B_Convert.Click += new System.EventHandler(this.B_Convert_Click);
             // 
             // B_Clear
             // 
-            this.B_Clear.Location = new System.Drawing.Point(483, 32);
+            this.B_Clear.Location = new System.Drawing.Point(501, 32);
             this.B_Clear.Name = "B_Clear";
-            this.B_Clear.Size = new System.Drawing.Size(63, 23);
+            this.B_Clear.Size = new System.Drawing.Size(45, 23);
             this.B_Clear.TabIndex = 11;
             this.B_Clear.Text = "Clear";
             this.B_Clear.UseVisualStyleBackColor = true;
@@ -199,7 +200,7 @@ namespace SignalEditor
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(50, 13);
+            this.label1.Location = new System.Drawing.Point(44, 13);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(45, 13);
             this.label1.TabIndex = 14;
@@ -209,7 +210,7 @@ namespace SignalEditor
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(59, 52);
+            this.label2.Location = new System.Drawing.Point(53, 52);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 15;
@@ -218,7 +219,7 @@ namespace SignalEditor
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(35, 94);
+            this.button1.Location = new System.Drawing.Point(30, 94);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 16;
@@ -249,11 +250,22 @@ namespace SignalEditor
             this.groupBox1.TabIndex = 18;
             this.groupBox1.TabStop = false;
             // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(425, 32);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(70, 23);
+            this.button3.TabIndex = 19;
+            this.button3.Text = "Export Hex";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.B_ToHex_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(558, 450);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.B_Clear);
@@ -301,6 +313,7 @@ namespace SignalEditor
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button button3;
     }
 }
 
