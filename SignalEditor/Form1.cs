@@ -79,7 +79,7 @@ namespace SignalEditor
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "Signal or BCH (*.bin/*.bch)|*.bin;*.bch|All files (*.*)|*.*";
+                openFileDialog.Filter = "Supported File (*.bin/*.bch/*.lz)|*.bin;*.bch;*.lz|Signal file|*.bin|BCH File|*.bch|Compressed File|*.lz|All files (*.*)|*.*";
                 //openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
                 openFileDialog.Title = "Open Signal File";
@@ -90,6 +90,13 @@ namespace SignalEditor
                     TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(openFileDialog.FileName));
                     if (Path.GetExtension(openFileDialog.FileName) == ".bch")
                         OpenBch(File.ReadAllBytes(openFileDialog.FileName));
+                    else if (Path.GetExtension(openFileDialog.FileName) == ".lz")
+                    {
+                        byte[] file = File.ReadAllBytes(openFileDialog.FileName);
+                        file = file.Skip(4).ToArray();
+                        file = FEIO.LZ11Decompress(file);
+                        OpenBch(file);
+                    }
                     else
                         OpenFile(openFileDialog.FileName);
                 }
