@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using GovanifY.Utility;
 using Microsoft.VisualBasic;
+using SPICA.Formats.CtrH3D;
+using FE3D.IO;
 
 namespace SignalEditor
 {
@@ -23,6 +25,7 @@ namespace SignalEditor
         }
 
         public List<Signal> signals;
+        public H3D Scene;
 
         #region Classes
         public class Signal
@@ -65,61 +68,8 @@ namespace SignalEditor
             bytes[3] = (byte)(((uint)data >> 24) & 0xFF);
             return bytes;
         }
-        private byte IntToByte(uint data, int index)
-        {
-            if (index > 4)
-                index = 4;
-            if (index < 0)
-                index = 0;
 
-            byte[] bytes = new byte[4];
-            bytes[0] = (byte)data;
-            bytes[1] = (byte)(((uint)data >> 8) & 0xFF);
-            bytes[2] = (byte)(((uint)data >> 16) & 0xFF);
-            bytes[3] = (byte)(((uint)data >> 24) & 0xFF);
-            return bytes[index];
-        }
-
-        private static byte[] ConvertHexStringToByteArray(string hexString)
         {
-            if (hexString.Length % 2 != 0)
-            {
-                return null;
-            }
-
-            byte[] data = new byte[hexString.Length / 2];
-            for (int index = 0; index < data.Length; index++)
-            {
-                string byteValue = hexString.Substring(index * 2, 2);
-                try
-                {
-                    data[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                }
-                catch (FormatException e)
-                {
-                    return null;
-                }
-            }
-
-            return data;
-        }
-
-        private static uint ReadUInt32FromArray(byte[] array)
-        {
-            return (uint)(array[0] | (array[1] << 8) | (array[2] << 16) | (array[3] << 24));
-        }
-        private static uint ReadUInt32FromArray(byte[] array, uint index)
-        {
-            return (uint)(array[index + 0] | (array[index + 1] << 8) | (array[index + 2] << 16) | (array[index + 3] << 24));
-        }
-
-        private static int ReadInt32FromArray(byte[] array)
-        {
-            return (int)(array[0] | (array[1] << 8) | (array[2] << 16) | (array[3] << 24));
-        }
-        private static int ReadInt32FromArray(byte[] array, uint index)
-        {
-            return (int)(array[index + 0] | (array[index + 1] << 8) | (array[index + 2] << 16) | (array[index + 3] << 24));
         }
 
         #endregion
@@ -136,7 +86,12 @@ namespace SignalEditor
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    OpenFile(openFileDialog.FileName);
+                    TV_siglist.Nodes.Clear();
+                    TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(openFileDialog.FileName));
+                    if (Path.GetExtension(openFileDialog.FileName) == ".bch")
+                        OpenBch(File.ReadAllBytes(openFileDialog.FileName));
+                    else
+                        OpenFile(openFileDialog.FileName);
                 }
             }
         }
@@ -168,71 +123,103 @@ namespace SignalEditor
         #region Main Code
         private void OpenFile(string infile)
         {
-            FileStream fs = new FileStream(infile, FileMode.Open);
-            BinaryStream bin = new BinaryStream(fs, true, false);
-            var ShiftJIS = Encoding.GetEncoding(932);
+            byte[] data = File.ReadAllBytes(infile);
 
-            ushort magic = bin.ReadUInt16();
-            if (magic == 21313 || magic == 17218)
+            if (data[0] == 0x41 && data[1] == 0x53)
             {
-                //when reading a bch file skip to the section with signals based on 0x4153 magic
-                long bchoffset = 0;
-                if (magic == 17218)
-                {
-                    while (magic != 21313)
-                    {
-                        magic = bin.ReadUInt16();
-                    }
-                    bchoffset = bin.Tell() - 0x2;
-                }
-
-                TV_siglist.Nodes.Clear();
-                signals = new List<Signal>();
-                ushort count = bin.ReadUInt16();
-                //skip to strings
-                bin.Seek(count * 0x8, SeekOrigin.Current);
-                byte[] strsection;
-                if (bin.Tell() != fs.Length)
-                {
-                    strsection = bin.ReadBytes(Convert.ToInt32(fs.Length - bin.Tell()));
-                }
-                else
-                    strsection = new byte[] { 0x0 };
-
-                //return to signal section
-                bin.Seek(0x4 + bchoffset, SeekOrigin.Begin);
-                for (int i = 0; i < count; i++)
-                {
-                    ushort frame = bin.ReadUInt16();
-                    ushort type = bin.ReadUInt16();
-                    uint data = bin.ReadUInt32();
-                    string str = "";
-                    if (type == 0x43 || type == 0x45 || type == 0x48 || type == 0x49 || type == 0x2e || type == 0x33)
-                    {
-                        str = ShiftJIS.GetString(strsection.Skip(Convert.ToInt32(data - ((count * 8) + 0x4))).TakeWhile(b => b != 0).ToArray());
-                    }
-                    signals.Add(new Signal { Frame = frame, Type = type, Data = data, Str = str });
-                }
-                bin.Close();
-                fs.Close();
-
-                SignalToTreeNodes(infile);
+                ReadSignals(data);
             }
             else
             {
-                MessageBox.Show("File is not signal file or BCH", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                bin.Close();
+                MessageBox.Show("File is not signal file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            
         }
 
-        private void SignalToTreeNodes(string infile)
+        private void OpenBch(byte[] infile)
+        {
+            if (FEIO.GetMagic(infile) != "BCH")
+            {
+                MessageBox.Show("File is not BCH file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            Scene = H3D.Open(infile);
+
+            if (Scene.SkeletalAnimations.Count == 0)
+            {
+                MessageBox.Show("BCH has no Animations", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (Scene.SkeletalAnimations[0].MetaData.Count == 0)
+                return;
+
+            foreach (H3DMetaDataValue userdata in Scene.SkeletalAnimations[0].MetaData)
+            {
+                if (userdata.Name == "$Signal")
+                {
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        BinaryStream bs = new BinaryStream(ms);
+                        foreach (var data in userdata.Values)
+                        {
+                            bs.Write(Convert.ToInt32(data));
+                        }
+                        byte[] bytes = ms.ToArray();
+                        ReadSignals(bytes);
+                    }
+                    
+                }
+                else
+                    continue;
+            }
+        }
+
+        private void ReadSignals(byte[] Inbytes)
+        {
+            MemoryStream ms = new MemoryStream(Inbytes);
+            BinaryStream bin = new BinaryStream(ms, true, false);
+            var ShiftJIS = Encoding.GetEncoding(932);
+
+            TV_siglist.Nodes[0].Nodes.Clear();
+            signals = new List<Signal>();
+            ushort magic = bin.ReadUInt16();
+            ushort count = bin.ReadUInt16();
+            //skip to strings
+            bin.Seek(count * 0x8, SeekOrigin.Current);
+            byte[] strsection;
+            if (bin.Tell() != ms.Length)
+            {
+                strsection = bin.ReadBytes(Convert.ToInt32(ms.Length - bin.Tell()));
+            }
+            else
+                strsection = new byte[] { 0x0 };
+
+            //return to signal section
+            bin.Seek(0x4, SeekOrigin.Begin);
+            for (int i = 0; i < count; i++)
+            {
+                ushort frame = bin.ReadUInt16();
+                ushort type = bin.ReadUInt16();
+                uint data = bin.ReadUInt32();
+                string str = "";
+                if (type == 0x43 || type == 0x45 || type == 0x48 || type == 0x49 || type == 0x2e || type == 0x33)
+                {
+                    str = ShiftJIS.GetString(strsection.Skip(Convert.ToInt32(data - ((count * 8) + 0x4))).TakeWhile(b => b != 0).ToArray());
+                }
+                signals.Add(new Signal { Frame = frame, Type = type, Data = data, Str = str });
+            }
+            bin.Close();
+            ms.Close();
+
+            SignalToTreeNodes();
+        }
+
+        private void SignalToTreeNodes()
         {
             if (signals.Count <= 0)
                 return;
 
-            TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(infile));
+            //TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(infile));
             foreach (var signal in signals)
             {
                 if (!TV_siglist.Nodes[0].Nodes.ContainsKey(Convert.ToString(signal.Frame)))
@@ -308,7 +295,7 @@ namespace SignalEditor
                         }
                         else
                         {
-                            bin.Write(ConvertHexStringToByteArray(Type.Nodes[0].Text.Replace("0x", "")));
+                            bin.Write(FEIO.HexStringToByteArray(Type.Nodes[0].Text.Replace("0x", "")));
                         }
                     }
                 }
@@ -373,7 +360,7 @@ namespace SignalEditor
             }
             else if (TV_siglist.SelectedNode.Text.StartsWith("0x"))
             {
-                byte[] bytetest = ConvertHexStringToByteArray(textBox1.Text);
+                byte[] bytetest = FEIO.HexStringToByteArray(textBox1.Text);
                 if (bytetest == null)
                 {
                     MessageBox.Show("Input is not a vaid hex string", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -498,7 +485,7 @@ namespace SignalEditor
 
             for (uint i = 0; i < signaldata.Length / 4; i++)
             {
-                int data = ReadInt32FromArray(signaldata, i * 4);
+                int data = Convert.ToInt32(FEIO.ReadUint32FromLEArray(signaldata, i * 4));
                 richTextBox1.AppendText(data + Environment.NewLine);
             }
         }
