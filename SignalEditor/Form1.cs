@@ -238,7 +238,7 @@ namespace SignalEditor
                 ushort type = bin.ReadUInt16();
                 uint data = bin.ReadUInt32();
                 string str = "";
-                if (type == 0x43 || type == 0x45 || type == 0x48 || type == 0x49 || type == 0x2e || type == 0x33)
+                if (type == 0x43 || type == 0x45 || type == 0x48 || type == 0x49 || type == 0x2e || type == 0x33 || type == 0x44)
                 {
                     str = ShiftJIS.GetString(strsection.Skip(Convert.ToInt32(data - ((count * 8) + 0x4))).TakeWhile(b => b != 0).ToArray());
                 }
@@ -266,7 +266,7 @@ namespace SignalEditor
                 TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.Add(Convert.ToString(signal.Type), $"Type: {Convert.ToString(signal.Type)}");
 
                 var tvtypenode = TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.IndexOfKey(Convert.ToString(signal.Type));
-                if (signal.Type == 0x43 || signal.Type == 0x45 || signal.Type == 0x48 || signal.Type == 0x49 || signal.Type == 0x2e || signal.Type == 0x33)
+                if (signal.Type == 0x43 || signal.Type == 0x45 || signal.Type == 0x48 || signal.Type == 0x49 || signal.Type == 0x2e || signal.Type == 0x33 || signal.Type == 0x44)
                 {
                     TV_siglist.Nodes[0].Nodes[tvframenode].Nodes[tvtypenode].Nodes.Add(Convert.ToString(signal.Data), signal.Str);
                 }
@@ -323,7 +323,7 @@ namespace SignalEditor
                         signalcount++;
                         bin.Write(Convert.ToUInt16(Frame.Text.Replace("Frame: ", "")));
                         bin.Write(Convert.ToUInt16(Type.Text.Replace("Type: ", "")));
-                        if (Type.Text == "Type: 67" || Type.Text == "Type: 69" || Type.Text == "Type: 72" || Type.Text == "Type: 73" || Type.Text == "Type: 46" || Type.Text == "Type: 51")
+                        if (Type.Text == "Type: 67" || Type.Text == "Type: 69" || Type.Text == "Type: 72" || Type.Text == "Type: 73" || Type.Text == "Type: 46"  || Type.Text == "Type: 51" || Type.Text == "Type: 68")
                         {
                             pointerPos.Add((uint)bin.Tell());
                             bin.Write((uint)0);
