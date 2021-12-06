@@ -9,10 +9,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using GovanifY.Utility;
 using Microsoft.VisualBasic;
 using SPICA.Formats.CtrH3D;
 using FE3D.IO;
+using FE3D.GovanifY;
 
 namespace SignalEditor
 {
@@ -521,7 +521,7 @@ namespace SignalEditor
 
             for (uint i = 0; i < signaldata.Length / 4; i++)
             {
-                int data = Convert.ToInt32(FEIO.ReadUint32FromLEArray(signaldata, i * 4));
+                int data = Convert.ToInt32(ArrayReader.ReadUInt32FromArray(signaldata, i * 4));
                 richTextBox1.AppendText(data + Environment.NewLine);
             }
         }

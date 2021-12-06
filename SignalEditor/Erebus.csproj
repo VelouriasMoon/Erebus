@@ -85,7 +85,6 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="GY_BinaryStream.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -128,10 +127,9 @@
   <ItemGroup>
     <Content Include="Lib\FE3D.dll" />
     <Content Include="Lib\FE3D.Graphics.dll" />
-    <Content Include="Lib\FE3D.Graphics.pdb" />
-    <Content Include="Lib\FE3D.pdb" />
     <Content Include="Lib\System.Numerics.Vectors.dll" />
     <Content Include="Light_and_Dark.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
