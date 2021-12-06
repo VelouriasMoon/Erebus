@@ -18,10 +18,12 @@ namespace SignalEditor
 {
     public partial class Form1 : Form
     {
-        public Form1()
+        public Form1(string infile)
         {
             InitializeComponent();
             groupBox1.Size = new Size(136, 0);
+            if (infile != string.Empty)
+                Open(infile);
         }
 
         public List<Signal> signals;
@@ -115,21 +117,26 @@ namespace SignalEditor
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    TV_siglist.Nodes.Clear();
-                    TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(openFileDialog.FileName));
-                    if (Path.GetExtension(openFileDialog.FileName) == ".bch")
-                        OpenBch(File.ReadAllBytes(openFileDialog.FileName));
-                    else if (Path.GetExtension(openFileDialog.FileName) == ".lz")
-                    {
-                        byte[] file = File.ReadAllBytes(openFileDialog.FileName);
-                        file = file.Skip(4).ToArray();
-                        file = FEIO.LZ11Decompress(file);
-                        OpenBch(file);
-                    }
-                    else
-                        OpenFile(openFileDialog.FileName);
+                    Open(openFileDialog.FileName);
                 }
             }
+        }
+
+        private void Open(string inpath)
+        {
+            TV_siglist.Nodes.Clear();
+            TV_siglist.Nodes.Add(Path.GetFileNameWithoutExtension(inpath));
+            if (Path.GetExtension(inpath) == ".bch")
+                OpenBch(File.ReadAllBytes(inpath));
+            else if (Path.GetExtension(inpath) == ".lz")
+            {
+                byte[] file = File.ReadAllBytes(inpath);
+                file = file.Skip(4).ToArray();
+                file = FEIO.LZ11Decompress(file);
+                OpenBch(file);
+            }
+            else
+                OpenFile(inpath);
         }
 
         private void TS_New_Click(object sender, EventArgs e)
