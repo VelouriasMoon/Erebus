@@ -272,7 +272,15 @@ namespace SignalEditor
                 var tvframenode = TV_siglist.Nodes[0].Nodes.IndexOfKey(Convert.ToString(signal.Frame));
                 TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.Add(Convert.ToString(signal.Type), $"Type: {Convert.ToString(signal.Type)}");
 
-                var tvtypenode = TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.IndexOfKey(Convert.ToString(signal.Type));
+                TreeNode[] types = TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.Find(Convert.ToString(signal.Type), false);
+                int tvtypenode = 0;
+                foreach (var type in types)
+                {
+                    if (type.Nodes.Count > 0)
+                        continue;
+                    else tvtypenode = TV_siglist.Nodes[0].Nodes[tvframenode].Nodes.IndexOf(type);
+
+                }
                 if (signal.Type == 0x43 || signal.Type == 0x45 || signal.Type == 0x48 || signal.Type == 0x49 || signal.Type == 0x2e || signal.Type == 0x33 || signal.Type == 0x44)
                 {
                     TV_siglist.Nodes[0].Nodes[tvframenode].Nodes[tvtypenode].Nodes.Add(Convert.ToString(signal.Data), signal.Str);
@@ -442,6 +450,7 @@ namespace SignalEditor
             TV_siglist.TreeViewNodeSorter = new NodeSorter();
             TV_siglist.Sort();
             textBox1.Clear();
+            TV_siglist.Focus();
         }
 
         private void B_Add_Click(object sender, EventArgs e)
@@ -462,29 +471,22 @@ namespace SignalEditor
                 return;
             }
 
-            if (TV_siglist.SelectedNode.Nodes.ContainsKey(input))
+            int i = Convert.ToInt16(input);
+            if (i == 67 || i == 69 || i == 72)
             {
-                MessageBox.Show("Signal type already exists", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "Null");
+            }
+            else if (i == 73)
+            {
+                TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "NML1");
             }
             else
             {
-                int i = Convert.ToInt16(input);
-                if (i == 67 || i == 69 || i == 72)
-                {
-                    TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "Null");
-                }
-                else if (i == 73)
-                {
-                    TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "NML1");
-                }
-                else
-                {
-                    TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "0x00000000");
-                }
-                TV_siglist.TreeViewNodeSorter = new NodeSorter();
-                TV_siglist.Sort();
+                TV_siglist.SelectedNode.Nodes.Add(input, $"Type: {input}").Nodes.Add("0", "0x00000000");
             }
+            TV_siglist.TreeViewNodeSorter = new NodeSorter();
+            TV_siglist.Sort();
+            TV_siglist.Focus();
         }
 
         private void B_Add_Frame_Click(object sender, EventArgs e)
@@ -517,6 +519,7 @@ namespace SignalEditor
             TV_siglist.Nodes[0].Nodes.Add(input, $"Frame: {input}");
             TV_siglist.TreeViewNodeSorter = new NodeSorter();
             TV_siglist.Sort();
+            TV_siglist.Focus();
         }
 
         private void B_Convert_Click(object sender, EventArgs e)
@@ -625,8 +628,7 @@ namespace SignalEditor
                 button2.Text = "^";
             }
         }
-        #endregion
 
-        
+        #endregion
     }
 }
